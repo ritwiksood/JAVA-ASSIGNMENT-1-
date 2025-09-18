@@ -1,168 +1,191 @@
-#include <iostream>
-#include <string>
-using namespace std;
+import java.util.Scanner;
 
-const int MAX_ITEMS = 100;   // maximum inventory size
-const int MAX_SPARSE = 50;   // max rarely restocked products
+class Account {
+    private int accountNumber;
+    private String accountHolderName;
+    private double balance;
+    private String email;
+    private String phoneNumber;
 
-// ========================
-// Inventory Item ADT
-// ========================
-class InventoryItem {
-public:
-    int ItemID;
-    string ItemName;
-    int Quantity;
-    float Price;
-
-    InventoryItem() {
-        ItemID = -1;
-        ItemName = "";
-        Quantity = 0;
-        Price = 0.0;
+    public Account(int accountNumber, String name, double initialBalance, String email, String phoneNumber) {
+        this.accountNumber = accountNumber;
+        this.accountHolderName = name;
+        this.balance = initialBalance;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
 
-    InventoryItem(int id, string name, int qty, float price) {
-        ItemID = id;
-        ItemName = name;
-        Quantity = qty;
-        Price = price;
-    }
-};
-
-// ========================
-// Inventory Management System
-// ========================
-class InventorySystem {
-private:
-    InventoryItem items[MAX_ITEMS];   // Array of items
-    int itemCount;                    // Total items
-
-    // Sparse Representation
-    struct Sparse {
-        int row;  // Item ID
-        int col;  // Quantity
-        int val;  // Price (converted to int for simplicity)
-    } sparse[MAX_SPARSE];
-    int sparseCount;
-
-public:
-    InventorySystem() {
-        itemCount = 0;
-        sparseCount = 0;
-    }
-
-    // Add item to inventory
-    void addItemRecord(int id, string name, int qty, float price) {
-        if (itemCount < MAX_ITEMS) {
-            items[itemCount++] = InventoryItem(id, name, qty, price);
-            cout << "Item added successfully!\n";
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("₹" + amount + " deposited successfully.");
         } else {
-            cout << "Inventory Full!\n";
+            System.out.println("Deposit amount must be positive.");
         }
     }
 
-    // Delete item by ID
-    void removeItemRecord(int id) {
-        for (int i = 0; i < itemCount; i++) {
-            if (items[i].ItemID == id) {
-                for (int j = i; j < itemCount - 1; j++) {
-                    items[j] = items[j + 1];
-                }
-                itemCount--;
-                cout << "Item deleted successfully!\n";
-                return;
-            }
-        }
-        cout << "Item not found!\n";
-    }
-
-    // Search by ID or Name
-    void searchByItem(string key) {
-        for (int i = 0; i < itemCount; i++) {
-            if (to_string(items[i].ItemID) == key || items[i].ItemName == key) {
-                cout << "Item Found: ID=" << items[i].ItemID
-                     << ", Name=" << items[i].ItemName
-                     << ", Qty=" << items[i].Quantity
-                     << ", Price=" << items[i].Price << "\n";
-                return;
-            }
-        }
-        cout << "Item not found!\n";
-    }
-
-    // Manage Price & Quantity table (Row-Major / Column-Major)
-    void managePriceQuantity(bool rowMajor = true) {
-        cout << "\nPrice-Quantity Table (" 
-             << (rowMajor ? "Row-Major" : "Column-Major") << "):\n";
-        if (rowMajor) {
-            for (int i = 0; i < itemCount; i++) {
-                cout << "Row " << i << ": " << items[i].Quantity 
-                     << " " << items[i].Price << "\n";
+    public void withdraw(double amount) {
+        if (amount > 0) {
+            if (balance >= amount) {
+                balance -= amount;
+                System.out.println("₹" + amount + " withdrawn successfully.");
+            } else {
+                System.out.println("Insufficient balance!");
             }
         } else {
-            cout << "Quantities: ";
-            for (int i = 0; i < itemCount; i++) cout << items[i].Quantity << " ";
-            cout << "\nPrices: ";
-            for (int i = 0; i < itemCount; i++) cout << items[i].Price << " ";
-            cout << "\n";
+            System.out.println("Withdrawal amount must be positive.");
         }
     }
 
-    // Sparse storage optimization
-    void optimizeSparseStorage() {
-        sparseCount = 0;
-        for (int i = 0; i < itemCount; i++) {
-            if (items[i].Quantity < 5) { // rarely restocked condition
-                sparse[sparseCount].row = items[i].ItemID;
-                sparse[sparseCount].col = items[i].Quantity;
-                sparse[sparseCount].val = (int)items[i].Price;
-                sparseCount++;
-            }
-        }
-        cout << "\nSparse Matrix Representation (Rarely Restocked):\n";
-        cout << "ItemID | Qty | Price\n";
-        for (int i = 0; i < sparseCount; i++) {
-            cout << sparse[i].row << "      " 
-                 << sparse[i].col << "      " 
-                 << sparse[i].val << "\n";
-        }
+    public void displayAccountDetails() {
+        System.out.println("\n=== Account Details ===");
+        System.out.println("Account Number: " + accountNumber);
+        System.out.println("Name: " + accountHolderName);
+        System.out.println("Balance: ₹" + balance);
+        System.out.println("Email: " + email);
+        System.out.println("Phone: " + phoneNumber);
     }
 
-    // Display all items
-    void displayAll() {
-        cout << "\n=== Inventory List ===\n";
-        for (int i = 0; i < itemCount; i++) {
-            cout << "ID=" << items[i].ItemID
-                 << ", Name=" << items[i].ItemName
-                 << ", Qty=" << items[i].Quantity
-                 << ", Price=" << items[i].Price << "\n";
-        }
+    public void updateContactDetails(String email, String phoneNumber) {
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        System.out.println("Contact details updated successfully!");
     }
-};
 
-// ========================
-// Main Function
-// ========================
-int main() {
-    InventorySystem store;
-
-    // Sample operations
-    store.addItemRecord(101, "Rice", 20, 45.5);
-    store.addItemRecord(102, "Oil", 3, 120.0);
-    store.addItemRecord(103, "Sugar", 10, 40.0);
-
-    store.displayAll();
-
-    store.searchByItem("102");
-    store.removeItemRecord(101);
-
-    store.displayAll();
-
-    store.managePriceQuantity(true);
-    store.managePriceQuantity(false);
-
-    store.optimizeSparseStorage();
-
-    return 0;
+    public int getAccountNumber() {
+        return accountNumber;
+    }
 }
+
+public class BankingApplication {
+    private Account[] accounts;
+    private int accountCount;
+    private Scanner sc;
+
+    public BankingApplication(int size) {
+        accounts = new Account[size];
+        accountCount = 0;
+        sc = new Scanner(System.in);
+    }
+
+    public void createAccount() {
+        System.out.print("Enter account holder name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter initial deposit amount: ");
+        double initialDeposit = sc.nextDouble();
+        sc.nextLine();
+        System.out.print("Enter email: ");
+        String email = sc.nextLine();
+        System.out.print("Enter phone number: ");
+        String phone = sc.nextLine();
+
+        int accountNumber = 1000 + accountCount + 1;
+        accounts[accountCount++] = new Account(accountNumber, name, initialDeposit, email, phone);
+
+        System.out.println("Account created successfully with Account Number: " + accountNumber);
+    }
+
+    public void performDeposit() {
+        System.out.print("Enter account number: ");
+        int accNo = sc.nextInt();
+        System.out.print("Enter amount to deposit: ");
+        double amount = sc.nextDouble();
+        sc.nextLine();
+
+        Account acc = findAccount(accNo);
+        if (acc != null) {
+            acc.deposit(amount);
+        } else {
+            System.out.println("Account not found!");
+        }
+    }
+
+    public void performWithdrawal() {
+        System.out.print("Enter account number: ");
+        int accNo = sc.nextInt();
+        System.out.print("Enter amount to withdraw: ");
+        double amount = sc.nextDouble();
+        sc.nextLine();
+
+        Account acc = findAccount(accNo);
+        if (acc != null) {
+            acc.withdraw(amount);
+        } else {
+            System.out.println("Account not found!");
+        }
+    }
+
+    public void showAccountDetails() {
+        System.out.print("Enter account number: ");
+        int accNo = sc.nextInt();
+        sc.nextLine();
+
+        Account acc = findAccount(accNo);
+        if (acc != null) {
+            acc.displayAccountDetails();
+        } else {
+            System.out.println("Account not found!");
+        }
+    }
+
+    public void updateContact() {
+        System.out.print("Enter account number: ");
+        int accNo = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter new email: ");
+        String email = sc.nextLine();
+        System.out.print("Enter new phone number: ");
+        String phone = sc.nextLine();
+
+        Account acc = findAccount(accNo);
+        if (acc != null) {
+            acc.updateContactDetails(email, phone);
+        } else {
+            System.out.println("Account not found!");
+        }
+    }
+
+    private Account findAccount(int accNo) {
+        for (int i = 0; i < accountCount; i++) {
+            if (accounts[i].getAccountNumber() == accNo) {
+                return accounts[i];
+            }
+        }
+        return null;
+    }
+
+    public void mainMenu() {
+        while (true) {
+            System.out.println("\n=== Welcome to the Banking Application ===");
+            System.out.println("1. Create a new account");
+            System.out.println("2. Deposit money");
+            System.out.println("3. Withdraw money");
+            System.out.println("4. View account details");
+            System.out.println("5. Update contact details");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+
+            int choice = sc.nextInt();
+            sc.nextLine();
+
+            switch (choice) {
+                case 1: createAccount(); break;
+                case 2: performDeposit(); break;
+                case 3: performWithdrawal(); break;
+                case 4: showAccountDetails(); break;
+                case 5: updateContact(); break;
+                case 6:
+                    System.out.println("Thank you for using the Banking Application!");
+                    return;
+                default:
+                    System.out.println("Invalid choice! Try again.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        BankingApplication app = new BankingApplication(100);
+        app.mainMenu();
+    }
+}
+
