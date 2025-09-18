@@ -1,0 +1,168 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+const int MAX_ITEMS = 100;   // maximum inventory size
+const int MAX_SPARSE = 50;   // max rarely restocked products
+
+// ========================
+// Inventory Item ADT
+// ========================
+class InventoryItem {
+public:
+    int ItemID;
+    string ItemName;
+    int Quantity;
+    float Price;
+
+    InventoryItem() {
+        ItemID = -1;
+        ItemName = "";
+        Quantity = 0;
+        Price = 0.0;
+    }
+
+    InventoryItem(int id, string name, int qty, float price) {
+        ItemID = id;
+        ItemName = name;
+        Quantity = qty;
+        Price = price;
+    }
+};
+
+// ========================
+// Inventory Management System
+// ========================
+class InventorySystem {
+private:
+    InventoryItem items[MAX_ITEMS];   // Array of items
+    int itemCount;                    // Total items
+
+    // Sparse Representation
+    struct Sparse {
+        int row;  // Item ID
+        int col;  // Quantity
+        int val;  // Price (converted to int for simplicity)
+    } sparse[MAX_SPARSE];
+    int sparseCount;
+
+public:
+    InventorySystem() {
+        itemCount = 0;
+        sparseCount = 0;
+    }
+
+    // Add item to inventory
+    void addItemRecord(int id, string name, int qty, float price) {
+        if (itemCount < MAX_ITEMS) {
+            items[itemCount++] = InventoryItem(id, name, qty, price);
+            cout << "Item added successfully!\n";
+        } else {
+            cout << "Inventory Full!\n";
+        }
+    }
+
+    // Delete item by ID
+    void removeItemRecord(int id) {
+        for (int i = 0; i < itemCount; i++) {
+            if (items[i].ItemID == id) {
+                for (int j = i; j < itemCount - 1; j++) {
+                    items[j] = items[j + 1];
+                }
+                itemCount--;
+                cout << "Item deleted successfully!\n";
+                return;
+            }
+        }
+        cout << "Item not found!\n";
+    }
+
+    // Search by ID or Name
+    void searchByItem(string key) {
+        for (int i = 0; i < itemCount; i++) {
+            if (to_string(items[i].ItemID) == key || items[i].ItemName == key) {
+                cout << "Item Found: ID=" << items[i].ItemID
+                     << ", Name=" << items[i].ItemName
+                     << ", Qty=" << items[i].Quantity
+                     << ", Price=" << items[i].Price << "\n";
+                return;
+            }
+        }
+        cout << "Item not found!\n";
+    }
+
+    // Manage Price & Quantity table (Row-Major / Column-Major)
+    void managePriceQuantity(bool rowMajor = true) {
+        cout << "\nPrice-Quantity Table (" 
+             << (rowMajor ? "Row-Major" : "Column-Major") << "):\n";
+        if (rowMajor) {
+            for (int i = 0; i < itemCount; i++) {
+                cout << "Row " << i << ": " << items[i].Quantity 
+                     << " " << items[i].Price << "\n";
+            }
+        } else {
+            cout << "Quantities: ";
+            for (int i = 0; i < itemCount; i++) cout << items[i].Quantity << " ";
+            cout << "\nPrices: ";
+            for (int i = 0; i < itemCount; i++) cout << items[i].Price << " ";
+            cout << "\n";
+        }
+    }
+
+    // Sparse storage optimization
+    void optimizeSparseStorage() {
+        sparseCount = 0;
+        for (int i = 0; i < itemCount; i++) {
+            if (items[i].Quantity < 5) { // rarely restocked condition
+                sparse[sparseCount].row = items[i].ItemID;
+                sparse[sparseCount].col = items[i].Quantity;
+                sparse[sparseCount].val = (int)items[i].Price;
+                sparseCount++;
+            }
+        }
+        cout << "\nSparse Matrix Representation (Rarely Restocked):\n";
+        cout << "ItemID | Qty | Price\n";
+        for (int i = 0; i < sparseCount; i++) {
+            cout << sparse[i].row << "      " 
+                 << sparse[i].col << "      " 
+                 << sparse[i].val << "\n";
+        }
+    }
+
+    // Display all items
+    void displayAll() {
+        cout << "\n=== Inventory List ===\n";
+        for (int i = 0; i < itemCount; i++) {
+            cout << "ID=" << items[i].ItemID
+                 << ", Name=" << items[i].ItemName
+                 << ", Qty=" << items[i].Quantity
+                 << ", Price=" << items[i].Price << "\n";
+        }
+    }
+};
+
+// ========================
+// Main Function
+// ========================
+int main() {
+    InventorySystem store;
+
+    // Sample operations
+    store.addItemRecord(101, "Rice", 20, 45.5);
+    store.addItemRecord(102, "Oil", 3, 120.0);
+    store.addItemRecord(103, "Sugar", 10, 40.0);
+
+    store.displayAll();
+
+    store.searchByItem("102");
+    store.removeItemRecord(101);
+
+    store.displayAll();
+
+    store.managePriceQuantity(true);
+    store.managePriceQuantity(false);
+
+    store.optimizeSparseStorage();
+
+    return 0;
+}
